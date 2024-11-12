@@ -46,11 +46,7 @@
 
         const indexView = (movies) => {
             let i = 0;
-            let view = `
-                <div class="field">
-                    <input type="text" id="search-query" placeholder="Search for movies">
-                    <button class="search-tmdb">Search</button>
-                </div>`;
+            let view = "";
 
             while (i < movies.length) {
                 view += `
@@ -73,7 +69,12 @@
             view += `<div class="actions">
                         <button class="new">Add New Movie</button>
                         <button class="reset">Reset</button>
-                    </div>`;
+                    </div>
+                    <div class="field">
+                        <input type="text" id="search-query" placeholder="Search for movies">
+                        <button class="search-tmdb">Search</button>
+                    </div>`
+                    ;
 
             return view;
         };
