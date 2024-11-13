@@ -36,6 +36,8 @@
 
        // DATA MODEL
 
+       let tmdbMovies = [];
+
        let initial_movies = [
         { title: "Superlópez", director: "Javier Ruiz Caldera", thumbnail: "files/superlopez.png" },
         { title: "Jurassic Park", director: "Steven Spielberg", thumbnail: "files/jurassicpark.png" },
@@ -45,6 +47,13 @@
 
         localStorage.my_movies = localStorage.my_movies || JSON.stringify(initial_movies);
 
+        const options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNjc2NTg1ZTY2N2QzZjQyOGNiMWFkMTZmOTFkOGY0MiIsIm5iZiI6MTczMTUxOTU2Ni4yODU3NDEzLCJzdWIiOiI2NzMyMzM1NTBkNzU4MDQwZWI0YjFlMzIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.OYo3fzuXa2FH-YVyxaLezUdr2whuIziWBJDytKyAG0Y'
+            }
+        };
 
         // VIEWS
         const indexView = (movies) => {
@@ -74,6 +83,10 @@
                         <!-----------------------Insert here "Add" and "Reset" buttons---------------->
                         <button class="new">Add</button>
                         <button class="reset">Reset</button>
+                    </div>
+                    <div class="field">
+                        <input type="text" id="search-query" placeholder="Search for movies">
+                        <button class="search">Search</button>
                     </div>`;
 
             return view;
@@ -105,7 +118,7 @@
                         Back
                     </button>
                `;
-        };
+        }
 
 
         const showView = (movie) => {
@@ -119,7 +132,7 @@
              <div class="actions">
                 <button class="index">Back</button>
              </div>`;
-        };
+        }
 
 
         const newView = () => {
@@ -144,48 +157,31 @@
                     <button class="create">Save</button>
                     <button class="index">Back</button>
                 </div>`;
-        };
-
-        const searchView = () => {
-            return `
-                <h2>Search Movies</h2>
-                <div class="field">
-                    Search by Title <br>
-                    <input type="text" id="search-query" placeholder="Enter movie title">
-                </div>
-                <div class="actions">
-                    <button class="search">Search</button>
-                    <button class="index">Back</button>
-                </div>
-                <div id="search-results"></div>
-            `;
-        };
+        }
 
         const resultsView = (results) => {
-            let view = "<h2>Search Results</h2><div class='movie-list'>";
+            let view = `<h2>Search Results</h2>`;
             
-            results.forEach((movie, index) => {
-                const poster = movie.poster_path 
-                    ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                    : "files/noimage.png";
-                
-                view += `
-                    <div class="movie">
-                        <div class="movie-img">
-                            <img src="${poster}" alt="${movie.title}">
-                        </div>
-                        <div class="title">
-                            ${movie.title} (${movie.release_date ? movie.release_date.split('-')[0] : "N/A"})
-                        </div>
-                        <div class="actions">
-                            <button class="add-movie" data-my-id="${index}">Add</button>
-                        </div>
-                    </div>`;
-            });
-            
-            view += "</div><button class='index'>Back</button>";
-            document.getElementById('search-results').innerHTML = view;
+            if (results.length === 0) {
+                view += `<p>No results found.</p>`;
+            } else {
+                results.forEach((movie, i) => {
+                    view += `
+                        <div class="movie">
+                            <div class="movie-img">
+                                <img src="https://image.tmdb.org/t/p/w200${movie.poster_path}" onerror="this.src='files/noimage.png'"/>
+                            </div>
+                            <div class="title">${movie.title || "<em>No title</em>"}</div>
+                            <div class="actions">
+                                <button class="add-tmdb" data-my-id="${i}">Add</button>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            return view;
         };
+
 
 
 
@@ -220,13 +216,23 @@
                 director: document.getElementById('new-director').value,
                 thumbnail: document.getElementById('new-thumbnail').value
             };
+            const isDuplicate = my_movies.some(movie => 
+                movie.title === newMovie.title && 
+                movie.director === newMovie.director && 
+                movie.thumbnail === newMovie.thumbnail
+            );
             
-            if (newMovie.title && newMovie.director && newMovie.thumbnail) {
-                my_movies.push(newMovie);
-                localStorage.my_movies = JSON.stringify(my_movies);
-                indexContr();
+            if (isDuplicate) {
+                alert("This movie already exists in your list.");
             } else {
-                alert("Please fill in all fields.");
+                // Otherwise, add the movie and update localStorage
+                if (newMovie.title && newMovie.director && newMovie.thumbnail) {
+                    my_movies.push(newMovie);
+                    localStorage.my_movies = JSON.stringify(my_movies);
+                    indexContr();
+                } else {
+                    alert("Please fill in all fields.");
+                }
             }
         };
 
@@ -266,54 +272,40 @@
             }
         };
 
-        const searchContr = () => {
-            const query = document.getElementById('search-query').value.trim();
-            
+        const searchContr = (query) => {
             if (!query) {
-                alert("Please enter a search term.");
+                alert("Please enter a movie title.");
                 return;
             }
 
-            const options = {
-                method: 'GET',
-                headers: {
-                    accept: 'application/json',
-                    Authorization: 'Bearer YOUR_API_KEY'
-                }
-            };
-
-            fetch('https://api.themoviedb.org/3/search/movie?query=' + encodeURIComponent(query), options)
+            fetch('https://api.themoviedb.org/3/search/movie?query=' + query, options)
                 .then(response => response.json())
-                .then(response => {
-                    if (response.results.length > 0) {
-                        resultsView(response.results);
-                    } else {
-                        document.getElementById('search-results').innerHTML = "<p>No results found.</p>";
-                    }
+                .then(data => {
+                    const my_movies = JSON.parse(localStorage.my_movies);
+                    const searchView = resultsView(data.results);
+                    document.getElementById('main').innerHTML = indexView(my_movies) + searchView;
+                    tmdbMovies = data.results;
                 })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("An error occurred while searching. Please try again later.");
-                });
+                .catch(error => console.error('Error fetching data from TMDb:', error));
         };
 
-        const addMovieContr = (index) => {
-            const searchResults = JSON.parse(localStorage.searchResults || "[]");
-            const movie = searchResults[index];
-
-            const newMovie = {
-                title: movie.title,
-                director: "Unknown",  // Since TMDb API doesn't provide a director name
-                thumbnail: `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-            };
-
+        const addTmdbContr = (movieData) => {
             let my_movies = JSON.parse(localStorage.my_movies);
-            my_movies.push(newMovie);
-            localStorage.my_movies = JSON.stringify(my_movies);
-            alert("Movie added successfully!");
+            const movieExists = my_movies.some(movie => movie.title === movieData.title && movie.director === "N/A");
+            if (movieExists) {
+                alert("This movie is already in your list.");
+            } else {
+                const newMovie = {
+                    title: movieData.title,
+                    director: "N/A",  // You can modify this as necessary (e.g., fetch director from TMDb if available)
+                    thumbnail: `https://image.tmdb.org/t/p/w200${movieData.poster_path}`
+                };
+                
+                my_movies.push(newMovie);
+                localStorage.my_movies = JSON.stringify(my_movies);
+                indexContr();
+            }
         };
-
-
 
 
         // EVENT ROUTER
@@ -330,8 +322,8 @@
             else if (matchEvent(ev, '.create')) createContr();
             else if (matchEvent(ev, '.delete')) deleteContr (myId(ev));
             else if (matchEvent(ev, '.reset')) resetContr();
-            else if (matchEvent(ev, '.search')) searchContr();
-            else if (matchEvent(ev, '.add-movie')) addMovieContr(myId(ev));
+            else if (matchEvent(ev, '.search')) searchContr(document.getElementById('search-query').value);
+            else if (matchEvent(ev, '.add-tmdb')) addTmdbContr(tmdbMovies[myId(ev)]);
         })
    
         // Initialization        
