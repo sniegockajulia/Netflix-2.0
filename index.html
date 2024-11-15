@@ -132,17 +132,17 @@
             return `<h2>Edit Movie </h2>
                 <div class="field">
                 Title <br>
-                <input  type="text" id="title" placeholder="Title" 
+                <input  type="text" id="edit-title" placeholder="Title" 
                         value="${movie.title || ''}">
                 </div>
                 <div class="field">
                 Director <br>
-                <input  type="text" id="director" placeholder="Director" 
+                <input  type="text" id="edit-director" placeholder="Director" 
                         value="${movie.director || ''}">
                 </div>
                 <div class="field">
                 Thumbnail <br>
-                <input  type="text" id="thumbnail" placeholder="Thumbnail URL" 
+                <input  type="text" id="edit-thumbnail" placeholder="Thumbnail URL" 
                         value="${movie.thumbnail}">
                 </div>
                 <div class="field">
@@ -155,14 +155,14 @@
                 </div>
                 <div class="field">
                     Overview <br>
-                    <textarea id="edit-overview" placeholder="Overview" value="${movie.overview}"></textarea>
+                    <textarea id="edit-overview" placeholder="overview" value="${movie.overview}"></textarea>
                 </div>
                 <div class="field">
                     Original Language <br>
                     <input type="text" id="edit-original-language" placeholder="Original Language" value="${movie.original_language || ''}">
                 </div>
                 <div class="actions">
-                    <button class="update" data-my-id="${i}">
+                    <button class="update" id="update" data-my-id="${i}">
                         Update
                     </button>
                     <button class="index">
@@ -229,7 +229,7 @@
                     <input type="text" id="new-original-language" placeholder="Original Language">
                 </div>
                 <div class="actions">
-                    <button class="create">Save</button>
+                    <button class="create" id="create">Save</button>
                     <button class="index">Back</button>
                 </div>`;
         }
@@ -439,6 +439,45 @@
             if (event.key === "Enter" && document.activeElement === document.getElementById("search-query")) {
                 event.preventDefault();
                 document.getElementById("search-button").click();
+            }
+        });
+
+        // Navigation of input fields
+
+        const navigationMap = {
+            "edit-title": "edit-director",
+            "edit-director": "edit-thumbnail",
+            "edit-thumbnail": "edit-release-date",
+            "edit-release-date": "edit-vote-average",
+            "edit-vote-average": "edit-overview",
+            "edit-overview": "edit-original-language",
+            "edit-original-language": null,
+            "new-title": "new-director",
+            "new-director": "new-thumbnail",
+            "new-thumbnail": "new-release-date",
+            "new-release-date": "new-vote-average",
+            "new-vote-average": "new-overview",
+            "new-overview": "new-original-language",
+            "new-original-language": null
+        };
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                const currentInputId = document.activeElement.id; // Get the current focused input
+                const nextInputId = navigationMap[currentInputId]; // Look up the next input in the map
+
+                if (nextInputId) {
+                    event.preventDefault(); // Prevent default Enter behavior
+                    document.getElementById(nextInputId).focus(); // Move focus to the next input
+                }
+
+                if (currentInputId === "edit-original-language") {
+                    event.preventDefault();
+                    document.getElementById("update").click();
+                } else if (currentInputId === "new-original-language") {
+                    event.preventDefault();
+                    document.getElementById("create").click();
+                }
             }
         });
         
