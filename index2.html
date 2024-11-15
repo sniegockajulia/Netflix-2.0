@@ -398,7 +398,7 @@
                 my_movies.push(newMovie);
                 localStorage.my_movies = JSON.stringify(my_movies);
                 
-                document.getElementById('main').innerHTML = indexView(my_movies) + searchView;
+                document.getElementById('main').innerHTML = indexView() + resultsView(tmdbMovies);
             }
         };
 
