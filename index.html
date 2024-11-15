@@ -471,6 +471,504 @@
                     document.getElementById(nextInputId).focus(); // Move focus to the next input
                 }
 
+                <!doctype html><html><head><meta charset="utf-8">
+    <title>My Favourite Movies</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        div.container::-webkit-scrollbar {height: 10px;}
+        div.container::-webkit-scrollbar-track {background: #333;}
+        div.container::-webkit-scrollbar-thumb {background: var(--primary); border-radius: 5px;}
+        div.container::-webkit-scrollbar-thumb:hover {background: var(--secondary);}
+        body { --primary: #E50914; --secondary: #FF5A4A; margin: 0px; background-color: black; color: white}
+        * {font-family: 'Roboto', sans-serif; box-sizing: border-box;}
+        button {  
+            -webkit-font-smoothing: antialiased;
+            display: inline-block;
+            text-decoration: none;
+            margin: 5px;
+            color: var(--primary);
+            background: #0f0f0f;
+            border: 1px solid var(--primary);
+            height: 28px;
+            font-size: 12px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: ease-in 0.2s all;
+            padding: 0 10px;
+        }
+        button:hover{background: var(--primary); color: white;}
+        div#main {padding: 10px; max-width: 1500px; margin: 0 auto; }
+        input, textarea {margin-bottom: 10px; padding: 6px; font-size: 14px; width: 100%; max-width: 300px; }
+        textarea { max-height: 100px; overflow: auto; } 
+        h1 {background: var(--primary); color: white; font-weight: 300; text-transform: uppercase; font-size: 20px; margin-top: 0; padding: 15px; text-align: center;}
+        h2 { margin: 5px 0 5px; font-size: 20px;  color: var(--primary);}
+        div.container{margin: 0px; overflow-x: auto; white-space: nowrap;}
+        div.actions { margin-top: 15px;}
+        div.movie {display: inline-block; width: 200px; padding: 15px; box-shadow: 0px 0px 15px var(--primary); margin: 10px; background-color: #0f0f0f; border-radius: 8px; text-align: center; transition: transform 0.2s ease; white-space: wrap;}
+        div.movie#result-movie {display: inline-block; width: 150px;}
+        div.movie:hover {transform: scale(1.05);}
+        div.movie div.movie-img {width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center;}
+        div.movie div.movie-img img {width: 100%; height: 100%; object-fit: cover; object-fit: contain;}
+        div.movie div.title {font-size: 16px; color: white; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+        div.movie div.release-date {text-align: center; color: white; overflow: hidden; text-overflow: ellipsis; width: 100%; white-space: nowrap; letter-spacing: -0.5px; transform: scaleY(1.2);}
+        div.field {margin-bottom: 10px;}
+        div.field#field-search {margin-bottom: 15px; color: var(--primary); text-transform: uppercase; font-size: 14px; display: flex; justify-content: left; align-items: center; gap: 5px}
+        div.field input, div.field textarea { width: 100%; padding: 6px; font-size: 14px; } 
+        div.field#field-search {margin-top: 0px;}
+        #search-query {margin-top: 10px;}
+        .movie-actions button {margin-right: 5px;}
+        .movie-details {display: flex; align-items: center; justify-content: flex-start; gap:50px; padding: 5px;}
+        .movie-description {display: flex; align-items: center; justify-content: flex-start;}
+        .movie-img-show {width: 300px; height: 300px; min-width: 300px; min-height: 300px; overflow: hidden; border-width: 10px; display: flex; align-items: flex-start; justify-content: flex-start;}
+        .movie-img-show img {width: 500px; height: 300px; overflow: hidden; object-fit: contain; object-position: left;}
+        #new-overview, #edit-overview {width: 600px; height: 60px}
+        
+
+        #spinner {display: flex; justify-content: center; align-items: center; height: auto; margin: 0px 0;}
+        .spinner {border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;}
+
+        @keyframes spin {0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}
+        @media screen and (max-width: 768px) { .movie {width: 45%;} .field input {width: 100%; max-width: 100%;} button {font-size: 14px;}}
+        @media screen and (max-width: 480px) {.movie {width: 90%;}}
+
+    </style>
+
+    <script type="text/javascript">
+
+       // DATA MODEL
+
+       let initial_movies = [
+        { title: "Superlópez", director: "Javier Ruiz Caldera", thumbnail: "files/superlopez.png", release_date: null, vote_average: null, overview: null, original_language: null },
+        { title: "Jurassic Park", director: "Steven Spielberg", thumbnail: "files/jurassicpark.png", release_date: null, vote_average: null, overview: null, original_language: null },
+        { title: "Interstellar", director: "Christopher Nolan", thumbnail: "files/interstellar.png", release_date: null, vote_average: null, overview: null, original_language: null }
+    ];
+
+
+        localStorage.my_movies = localStorage.my_movies || JSON.stringify(initial_movies);
+
+        const options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNjc2NTg1ZTY2N2QzZjQyOGNiMWFkMTZmOTFkOGY0MiIsIm5iZiI6MTczMTUxOTU2Ni4yODU3NDEzLCJzdWIiOiI2NzMyMzM1NTBkNzU4MDQwZWI0YjFlMzIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.OYo3fzuXa2FH-YVyxaLezUdr2whuIziWBJDytKyAG0Y'
+            }
+        };
+
+        // VIEWS
+        const indexView = (movies) => {
+            let i=0;
+            let view = "";
+            view += `<div id="success-message" style="display: none; position: fixed; top: 10px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background-color: rgba(255, 255, 255, 0.8); color: black; border-radius: 10px; font-size: 16px; font-weight: bold; text-align: center; z-index: 9999;">
+                    Movie added successfully!
+                    </div>
+                    <div class="container">\n`;
+
+            while(i < movies.length) {
+              view += `
+                <div class="movie">
+                   <div class="movie-img">
+                        <img data-my-id="${i}" src="${movies[i].thumbnail}" onerror="this.src='files/noimage.png'" onclick="showContr(${i})"/>
+                   </div>
+                   <div class="title" title="${movies[i].title || "<em>No title</em>"}">
+                       ${movies[i].title || "<em>No title</em>"}
+                   </div>
+                   <div class="actions">
+                        <!-------------------Insert here "Show" and "Delete" buttons------------------>
+                       <button class="edit" data-my-id="${i}">edit</button>
+                       <button class="show" data-my-id="${i}">Show</button>
+                       <button class="delete" data-my-id="${i}">Delete</button>
+                    </div>
+                </div>\n`;
+              i = i + 1;
+            };
+            view += `</div>\n`;
+
+            view += `<div class="actions">
+                        <!-----------------------Insert here "Add" and "Reset" buttons---------------->
+                        <button class="new">Add</button>
+                        <button class="reset">Reset</button>
+                    </div>
+                    <div class="field" id="field-search">
+                        <input type="text" id="search-query" placeholder="Search for movies">
+                        <button class="search" id="search-button">Search</button>
+                        <div id="spinner" style="display:none;">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>`;
+
+            return view;
+        };
+
+
+        const editView = (i, movie) => {
+            return `<h2>Edit Movie </h2>
+                <div class="field">
+                Title <br>
+                <input  type="text" id="edit-title" placeholder="Title" 
+                        value="${movie.title || ''}">
+                </div>
+                <div class="field">
+                Director <br>
+                <input  type="text" id="edit-director" placeholder="Director" 
+                        value="${movie.director || ''}">
+                </div>
+                <div class="field">
+                Thumbnail <br>
+                <input  type="text" id="edit-thumbnail" placeholder="Thumbnail URL" 
+                        value="${movie.thumbnail}">
+                </div>
+                <div class="field">
+                    Release Date <br>
+                    <input type="date" id="edit-release-date" placeholder="Release Date" value="${movie.release_date}">
+                </div>
+                <div class="field">
+                    Average Vote <br>
+                    <input type="number" id="edit-vote-average" placeholder="Average Vote" value="${movie.vote_average}" step="0.1" min="0" max="10">
+                </div>
+                <div class="field">
+                    Overview <br>
+                    <textarea id="edit-overview" placeholder="overview" value="${movie.overview}"></textarea>
+                </div>
+                <div class="field">
+                    Original Language <br>
+                    <input type="text" id="edit-original-language" placeholder="Original Language" value="${movie.original_language || ''}">
+                </div>
+                <div class="actions">
+                    <button class="update" id="update" data-my-id="${i}">
+                        Update
+                    </button>
+                    <button class="index">
+                        Back
+                    </button>
+               `;
+        }
+
+
+        const showView = (movie) => {
+            // Complete: generate HTML with movie information
+            // ...
+
+            return `
+             <h2>${movie.title}</h2>
+             <p><strong>Director:</strong> ${movie.director || "<em>No director specified</em>"}</p>
+             <p><strong>Release Date:</strong> ${movie.release_date || "<em>No release date</em>"}</p>
+             <p><strong>Average Vote:</strong> ${movie.vote_average || "<em>No average vote</em>"}</p>
+             <p><strong>Original Language:</strong> ${movie.original_language || "<em>No language specified</em>"}</p>
+             <div class="movie-details">
+                 <div class="movie-img-show">
+                     <img src="${movie.thumbnail}" onerror="this.src='files/noimage.png'"/>
+                 </div>
+                 <div class="movie-description">
+                     <p>${movie.overview || "<em>No overview available</em>"}</p>
+                 </div>
+             </div>
+                <button class="index">Back</button>
+             </div>`;
+        }
+
+
+        const newView = () => {
+            // Complete: generate form to create new movie
+            // ...
+
+            return `<h2>Create Movie</h2>
+                <div class="field">
+                    Title <br>
+                    <input type="text" id="new-title" placeholder="Title">
+                </div>
+                <div class="field">
+                    Director <br>
+                    <input type="text" id="new-director" placeholder="Director">
+                </div>
+                <div class="field">
+                    Thumbnail <br>
+                    <input type="text" id="new-thumbnail" placeholder="Thumbnail URL">
+                </div>
+                <div class="field">
+                    Release Date <br>
+                    <input type="date" id="new-release-date" placeholder="Release Date">
+                </div>
+                <div class="field">
+                    Average Vote <br>
+                    <input type="number" id="new-vote-average" placeholder="Average Vote" step="0.1" min="0" max="10">
+                </div>
+                <div class="field">
+                    Overview <br>
+                    <textarea id="new-overview" placeholder="Overview"></textarea>
+                </div>
+                <div class="field">
+                    Original Language <br>
+                    <input type="text" id="new-original-language" placeholder="Original Language">
+                </div>
+                <div class="actions">
+                    <button class="create" id="create">Save</button>
+                    <button class="index">Back</button>
+                </div>`;
+        }
+
+        const resultsView = (results) => {
+            let view = `<h2>Search Results</h2>`;
+            
+            if (results.length === 0) {
+                view += `<p>No results found.</p>`;
+            } else {
+                results.forEach((movie, i) => {
+                    view += `
+                        <div class="movie" id="result-movie">
+                            <div class="movie-img">
+                                <img class="add-tmdb-image" data-my-id="${i}" src="https://image.tmdb.org/t/p/w200${movie.poster_path}" onerror="this.src='files/noimage.png'"/>
+                            </div>
+                            <div class="title" title="${movie.title || "<em>No title</em>"}">${movie.title || "<em>No title</em>"}</div>
+                            <div class="release-date"><strong>${movie.release_date || "<em>No release date</em>"}</strong></div>
+                            <div class="actions">
+                                <button class="add-tmdb" data-my-id="${i}">Add</button>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            return view;
+        };
+
+
+
+
+        // CONTROLLERS 
+        const indexContr = () => {
+         let my_movies = JSON.parse(localStorage.my_movies);
+         document.getElementById('main').innerHTML = indexView(my_movies);
+         };
+
+
+        const showContr = (i) => {
+            // Complete: controller that shows the showView(movie)
+            // ...
+            let my_movies = JSON.parse(localStorage.my_movies);
+            document.getElementById('main').innerHTML = showView(my_movies[i]);
+
+        };
+
+        const newContr = () => {
+            // Complete: controller that shows the newView()
+            // ...
+            document.getElementById('main').innerHTML = newView();
+
+        };
+
+        const createContr = () => {
+            // Complete: controller that creates a new movie in the model saved in localStorage
+            // ...
+            let my_movies = JSON.parse(localStorage.my_movies);
+            let newMovie = {
+                title: document.getElementById('new-title').value,
+                director: document.getElementById('new-director').value,
+                thumbnail: document.getElementById('new-thumbnail').value
+            };
+            const isDuplicate = my_movies.some(movie => 
+                movie.title === newMovie.title && 
+                movie.director === newMovie.director && 
+                movie.thumbnail === newMovie.thumbnail
+            );
+            
+            if (isDuplicate) {
+                alert("This movie already exists in your list.");
+            } else {
+                
+                if (newMovie.title && newMovie.director && newMovie.thumbnail) {
+                    my_movies.push(newMovie);
+                    localStorage.my_movies = JSON.stringify(my_movies);
+                    window.scrollTo(0, 0);
+                    indexContr();
+                } else {
+                    alert("Please fill in all fields.");
+                }
+            }
+        };
+
+        const editContr = (i) => {
+            let movie = JSON.parse(localStorage.my_movies)[i];
+            document.getElementById('main').innerHTML = editView(i, movie);
+        };
+
+
+        const updateContr = (i) => {
+            let my_movies = JSON.parse(localStorage.my_movies);
+            my_movies[i].title    = document.getElementById('title').value;
+            my_movies[i].director  = document.getElementById('director').value;
+            my_movies[i].thumbnail = document.getElementById('thumbnail').value;
+            my_movies[i].release_date = document.getElementById('edit-release-date').value;
+            my_movies[i].vote_average = document.getElementById('edit-vote-average').value;
+            my_movies[i].overview = document.getElementById('edit-overview').value;
+            my_movies[i].original_language = document.getElementById('edit-original-language').value;
+            localStorage.my_movies = JSON.stringify(my_movies);
+            window.scrollTo(0, 0);
+            indexContr();
+        };
+
+
+        const deleteContr = (i) => {
+            // Complete: controller that updates the model by deleting the selected movie
+            // Generates confirmation dialog: Accept button returns true, Cancel false
+            if (confirm("Are you sure you want to delete this movie?")) {
+                let my_movies = JSON.parse(localStorage.my_movies);
+                my_movies.splice(i, 1);
+                localStorage.my_movies = JSON.stringify(my_movies);
+                indexContr();
+            }
+        };
+
+
+        const resetContr = () => {
+            // Complete: controller that resets the model saved in localStorage with the original movies
+            if (confirm("Are you sure you want to reset the database?")) {
+                localStorage.my_movies = JSON.stringify(initial_movies);
+                indexContr();
+            }
+        };
+
+        const searchContr = (query) => {
+            if (!query) {
+                alert("Please enter a movie title.");
+                return;
+            }
+
+            document.getElementById('spinner').style.display = 'flex';
+
+            fetch('https://api.themoviedb.org/3/search/movie?query=' + query, options)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('spinner').style.display = 'none';
+                    const my_movies = JSON.parse(localStorage.my_movies);
+                    const searchView = resultsView(data.results);
+                    document.getElementById('main').innerHTML = indexView(my_movies) + searchView;
+                    tmdbMovies = data.results;
+                })
+                .catch(error => {
+                    document.getElementById('spinner').style.display = 'none';
+                    alert('Error fetching data from TMDb');
+                });
+        };
+
+        const addTmdbContr = (movieData, ev) => {
+            let my_movies = JSON.parse(localStorage.my_movies);
+            const movieExists = my_movies.some(movie => movie.title === movieData.title && (movie.director === movieData.director || movie.director === null));
+            const addButton = ev.target;
+            addButton.disabled = true;
+
+            if (movieExists) {
+                alert("This movie is already in your list.");
+            } else {
+                const newMovie = {
+                    title: movieData.title,
+                    director: null,
+                    thumbnail: `https://image.tmdb.org/t/p/w200${movieData.poster_path}`,
+                    release_date: movieData.release_date, 
+                    vote_average:movieData.vote_average,
+                    overview: movieData.overview,
+                    original_language: movieData.original_language
+                };
+                
+                my_movies.push(newMovie);
+                localStorage.my_movies = JSON.stringify(my_movies);
+                const addButton = ev.target;
+                addButton.disabled = true;
+                const successMessage = document.getElementById("success-message");
+                successMessage.style.display = "block";
+                setTimeout(() => {
+                    document.getElementById('main').innerHTML = indexView(my_movies)+resultsView(tmdbMovies);
+                    const successMessage = document.getElementById("success-message");
+                    successMessage.style.display = "block";
+                }, 500);
+                setTimeout(() => {
+                    document.getElementById('main').innerHTML = indexView(my_movies)+resultsView(tmdbMovies);
+                    const successMessage = document.getElementById("success-message");
+                    successMessage.style.display = "none";
+                }, 2000);
+            }
+        };
+
+
+        // EVENT ROUTER
+        const matchEvent = (ev, sel) => ev.target.matches(sel);
+        const myId = (ev) => Number(ev.target.dataset.myId);
+
+        document.addEventListener('click', ev => {
+            if      (matchEvent(ev, '.index'))  indexContr  ();
+            else if (matchEvent(ev, '.edit'))   editContr   (myId(ev));
+            else if (matchEvent(ev, '.update')) updateContr (myId(ev));
+            // Complete by adding the missing controllers
+            else if (matchEvent(ev, '.show')) showContr (myId(ev));
+            else if (matchEvent(ev, '.new')) newContr();
+            else if (matchEvent(ev, '.create')) createContr();
+            else if (matchEvent(ev, '.delete')) deleteContr (myId(ev));
+            else if (matchEvent(ev, '.reset')) resetContr();
+            else if (matchEvent(ev, '.search')) searchContr(document.getElementById('search-query').value);
+            else if (matchEvent(ev, '.add-tmdb')) addTmdbContr(tmdbMovies[myId(ev)],ev);
+            else if (matchEvent(ev, '.add-tmdb-image')) document.querySelectorAll('.add-tmdb')[myId(ev)].click();
+        })
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && document.activeElement === document.getElementById("search-query")) {
+                event.preventDefault();
+                document.getElementById("search-button").click();
+            }
+        });
+
+        // Navigation of input fields
+
+        const navigationMap = {
+            "edit-title": "edit-director",
+            "edit-director": "edit-thumbnail",
+            "edit-thumbnail": "edit-release-date",
+            "edit-release-date": "edit-vote-average",
+            "edit-vote-average": "edit-overview",
+            "edit-overview": "edit-original-language",
+            "edit-original-language": null,
+            "new-title": "new-director",
+            "new-director": "new-thumbnail",
+            "new-thumbnail": "new-release-date",
+            "new-release-date": "new-vote-average",
+            "new-vote-average": "new-overview",
+            "new-overview": "new-original-language",
+            "new-original-language": null
+        };
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                const currentInputId = document.activeElement.id; // Get the current focused input
+                const nextInputId = navigationMap[currentInputId]; // Look up the next input in the map
+
+                if (nextInputId) {
+                    event.preventDefault(); // Prevent default Enter behavior
+                    document.getElementById(nextInputId).focus(); // Move focus to the next input
+                }
+
+                if (currentInputId === "edit-original-language") {
+                    event.preventDefault();
+                    document.getElementById("update").click();
+                } else if (currentInputId === "new-original-language") {
+                    event.preventDefault();
+                    document.getElementById("create").click();
+                }
+            }
+        });
+        
+        // Initialization             
+        document.addEventListener('DOMContentLoaded', indexContr);
+    </script>
+</head>
+
+<body>
+
+    <h1>My Favourite Movies</h1>
+    <div id="main"> <!-- The view is included here --> </div>
+
+    
+</body>
+</html>
+
+
                 
             }
         });
