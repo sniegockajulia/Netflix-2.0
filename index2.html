@@ -180,7 +180,7 @@
 
             return `
              <h2>${movie.title}</h2>
-             <p><strong>Director:</strong> ${movie.director} || "<em>No director specified</em>"}</p>
+             <p><strong>Director:</strong> ${movie.director || "<em>No director specified</em>"}</p>
              <p><strong>Release Date:</strong> ${movie.release_date || "<em>No release date</em>"}</p>
              <p><strong>Average Vote:</strong> ${movie.vote_average || "<em>No average vote</em>"}</p>
              <p><strong>Original Language:</strong> ${movie.original_language || "<em>No language specified</em>"}</p>
@@ -397,7 +397,15 @@
                 
                 my_movies.push(newMovie);
                 localStorage.my_movies = JSON.stringify(my_movies);
-                indexContr();
+                button.disabled = true;
+                 const successMessage = document.createElement("div");
+                successMessage.textContent = "Movie added successfully!";
+                successMessage.style.color = "green";
+                document.body.appendChild(successMessage);
+
+                // Remove message after 3 seconds
+                setTimeout(() => successMessage.remove(), 3000);
+                document.getElementById('main').innerHTML = indexView(my_movies) + searchView;
             }
         };
 
