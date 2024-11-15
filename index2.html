@@ -16,30 +16,32 @@
             color: var(--primary);
             background: #0f0f0f;
             border: 1px solid var(--primary);
-            height: 30px;
+            height: 28px;
             font-size: 12px;
             border-radius: 8px;
             text-transform: uppercase;
             cursor: pointer;
             transition: ease-in 0.2s all;
-            padding: 0 12px;
+            padding: 0 10px;
         }
         button:hover{background: var(--primary); color: white;}
         div#main {padding: 10px; max-width: 1500px; margin: 0 auto; }
-        input {margin-bottom: 10px; padding: 8px; font-size: 14px; width: 100%; max-width: 300px; }
-        h1 {background: var(--primary); color: white; font-weight: 300; text-transform: uppercase; font-size: 24px; margin-top: 0; padding: 20px; text-align: center;}
-        h2 { margin: 5px 0 5px; font-size: 22px;  color: var(--primary);}
+        input, textarea {margin-bottom: 10px; padding: 6px; font-size: 14px; width: 100%; max-width: 300px; }
+        textarea { max-height: 100px; overflow: auto; } 
+        h1 {background: var(--primary); color: white; font-weight: 300; text-transform: uppercase; font-size: 20px; margin-top: 0; padding: 15px; text-align: center;}
+        h2 { margin: 5px 0 5px; font-size: 20px;  color: var(--primary);}
         div.container{margin: 0px; overflow-x: auto; white-space: nowrap;}
         div.actions { margin-top: 15px;}
         div.movie {display: inline-block; width: 200px; padding: 15px; box-shadow: 0px 0px 15px var(--primary); margin: 10px; background-color: #0f0f0f; border-radius: 8px; text-align: center; transition: transform 0.2s ease; white-space: wrap;}
         div.movie#result-movie {display: inline-block; width: 150px;}
         div.movie:hover {transform: scale(1.05);}
-        div.movie div.movie-img {width: 100%; height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center;}
+        div.movie div.movie-img {width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center;}
         div.movie div.movie-img img {width: 100%; height: 100%; object-fit: cover; object-fit: contain;}
         div.movie div.title {font-size: 16px; color: white; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
         div.movie div.release-date {text-align: center; color: white; overflow: hidden; text-overflow: ellipsis; width: 100%; white-space: nowrap; letter-spacing: -0.5px; transform: scaleY(1.2);}
+        div.field {margin-bottom: 10px;}
         div.field#field-search {margin-bottom: 15px; color: var(--primary); text-transform: uppercase; font-size: 14px; display: flex; justify-content: left; align-items: center; gap: 5px}
-        div.field input { width: 100%; padding: 8px; font-size: 14px; margin-top: 20px;}
+        div.field input, div.field textarea { width: 100%; padding: 6px; font-size: 14px; } 
         div.field#field-search {margin-top: 0px;}
         .movie-actions button {margin-right: 5px;}
         .movie-details {display: flex; align-items: center; justify-content: flex-start; gap:50px; padding: 5px;}
@@ -47,22 +49,13 @@
         .movie-img-show {width: 300px; height: 300px; min-width: 300px; min-height: 300px; overflow: hidden; border-width: 10px; display: flex; align-items: flex-start; justify-content: flex-start;}
         .movie-img-show img {width: 500px; height: 300px; overflow: hidden; object-fit: contain; object-position: left;}
         #new-overview, #edit-overview {width: 600px; height: 60px}
+
         #spinner {display: flex; justify-content: center; align-items: center; height: auto; margin: 0px 0;}
         .spinner {border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @media screen and (max-width: 768px) {
-            .movie {width: 45%;}
-            .field input {width: 100%; max-width: 100%;}
-            button {font-size: 14px;}
-        }
-
-        @media screen and (max-width: 480px) {
-            .movie {width: 90%;}
-        }
+        @keyframes spin {0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}
+        @media screen and (max-width: 768px) { .movie {width: 45%;} .field input {width: 100%; max-width: 100%;} button {font-size: 14px;}}
+        @media screen and (max-width: 480px) {.movie {width: 90%;}}
 
     </style>
 
@@ -71,9 +64,9 @@
        // DATA MODEL
 
        let initial_movies = [
-        { title: "Superlópez", director: "Javier Ruiz Caldera", thumbnail: "files/superlopez.png", release_date:"", vote_average:"", overview:"", original_language: "" },
-        { title: "Jurassic Park", director: "Steven Spielberg", thumbnail: "files/jurassicpark.png", release_date:"", vote_average:"", overview:"", original_language: "" },
-        { title: "Interstellar", director: "Christopher Nolan", thumbnail: "files/interstellar.png", release_date:"", vote_average:"", overview:"", original_language: "" }
+        { title: "Superlópez", director: "Javier Ruiz Caldera", thumbnail: "files/superlopez.png", release_date: null, vote_average: null, overview: null, original_language: null },
+        { title: "Jurassic Park", director: "Steven Spielberg", thumbnail: "files/jurassicpark.png", release_date: null, vote_average: null, overview: null, original_language: null },
+        { title: "Interstellar", director: "Christopher Nolan", thumbnail: "files/interstellar.png", release_date: null, vote_average: null, overview: null, original_language: null }
     ];
 
 
@@ -91,13 +84,16 @@
         const indexView = (movies) => {
             let i=0;
             let view = "";
-            view += `<div class="container">\n`;
+            view += `<div id="success-message" style="display: none; position: fixed; top: 10px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background-color: rgba(255, 255, 255, 0.8); color: black; border-radius: 10px; font-size: 16px; font-weight: bold; text-align: center; z-index: 9999;">
+                    Movie added successfully!
+                    </div>
+                    <div class="container">\n`;
 
             while(i < movies.length) {
               view += `
                 <div class="movie">
                    <div class="movie-img">
-                        <img data-my-id="${i}" src="${movies[i].thumbnail}" onerror="this.src='files/noimage.png'"/>
+                        <img data-my-id="${i}" src="${movies[i].thumbnail}" onerror="this.src='files/noimage.png'" onclick="showContr(${i})"/>
                    </div>
                    <div class="title" title="${movies[i].title || "<em>No title</em>"}">
                        ${movies[i].title || "<em>No title</em>"}
@@ -135,12 +131,12 @@
                 <div class="field">
                 Title <br>
                 <input  type="text" id="title" placeholder="Title" 
-                        value="${movie.title}">
+                        value="${movie.title || ''}">
                 </div>
                 <div class="field">
                 Director <br>
                 <input  type="text" id="director" placeholder="Director" 
-                        value="${movie.director}">
+                        value="${movie.director || ''}">
                 </div>
                 <div class="field">
                 Thumbnail <br>
@@ -161,7 +157,7 @@
                 </div>
                 <div class="field">
                     Original Language <br>
-                    <input type="text" id="edit-original-language" placeholder="Original Language" value="${movie.original_language}">
+                    <input type="text" id="edit-original-language" placeholder="Original Language" value="${movie.original_language || ''}">
                 </div>
                 <div class="actions">
                     <button class="update" data-my-id="${i}">
@@ -246,7 +242,7 @@
                     view += `
                         <div class="movie" id="result-movie">
                             <div class="movie-img">
-                                <img src="https://image.tmdb.org/t/p/w200${movie.poster_path}" onerror="this.src='files/noimage.png'"/>
+                                <img class="add-tmdb-image" data-my-id="${i}" src="https://image.tmdb.org/t/p/w200${movie.poster_path}" onerror="this.src='files/noimage.png'"/>
                             </div>
                             <div class="title" title="${movie.title || "<em>No title</em>"}">${movie.title || "<em>No title</em>"}</div>
                             <div class="release-date"><strong>${movie.release_date || "<em>No release date</em>"}</strong></div>
@@ -379,15 +375,18 @@
                 });
         };
 
-        const addTmdbContr = (movieData, id) => {
+        const addTmdbContr = (movieData, ev) => {
             let my_movies = JSON.parse(localStorage.my_movies);
-            const movieExists = my_movies.some(movie => movie.title === movieData.title && movie.director === "N/A");
+            const movieExists = my_movies.some(movie => movie.title === movieData.title && (movie.director === movieData.director || movie.director === null));
+            const addButton = ev.target;
+            addButton.disabled = true;
+
             if (movieExists) {
                 alert("This movie is already in your list.");
             } else {
                 const newMovie = {
                     title: movieData.title,
-                    director: "",
+                    director: null,
                     thumbnail: `https://image.tmdb.org/t/p/w200${movieData.poster_path}`,
                     release_date: movieData.release_date, 
                     vote_average:movieData.vote_average,
@@ -397,8 +396,20 @@
                 
                 my_movies.push(newMovie);
                 localStorage.my_movies = JSON.stringify(my_movies);
-                
-                document.getElementById('main').innerHTML = indexView() + resultsView(tmdbMovies);
+                const addButton = ev.target;
+                addButton.disabled = true;
+                const successMessage = document.getElementById("success-message");
+                successMessage.style.display = "block";
+                setTimeout(() => {
+                    document.getElementById('main').innerHTML = indexView(my_movies)+resultsView(tmdbMovies);
+                    const successMessage = document.getElementById("success-message");
+                    successMessage.style.display = "block";
+                }, 500);
+                setTimeout(() => {
+                    document.getElementById('main').innerHTML = indexView(my_movies)+resultsView(tmdbMovies);
+                    const successMessage = document.getElementById("success-message");
+                    successMessage.style.display = "none";
+                }, 2000);
             }
         };
 
@@ -418,7 +429,8 @@
             else if (matchEvent(ev, '.delete')) deleteContr (myId(ev));
             else if (matchEvent(ev, '.reset')) resetContr();
             else if (matchEvent(ev, '.search')) searchContr(document.getElementById('search-query').value);
-            else if (matchEvent(ev, '.add-tmdb')) addTmdbContr(tmdbMovies[myId(ev)],myId(ev));
+            else if (matchEvent(ev, '.add-tmdb')) addTmdbContr(tmdbMovies[myId(ev)],ev);
+            else if (matchEvent(ev, '.add-tmdb-image')) document.querySelectorAll('.add-tmdb')[myId(ev)].click();
         })
 
         document.addEventListener("keydown", function (event) {

@@ -1,4 +1,4 @@
-https://github.com/sniegockajulia/My-Little-Netflix
+https://github.com/sniegockajulia/Netflix-2.0
 
 ## Practice Description
 In this activity, a client web application will be developed using the main web technologies (HTML, CSS, and JavaScript), following the MVC design pattern. The application will serve as a movie database, where data such as the title, director, and the URL of each movie's cover will be stored. Users will be able to view the movie information, add new movies, edit existing ones, delete them, or reset the database. All of these actions will be performed through buttons in the application's interface. The main goal of this activity is for students to become familiar with the development of a complete web application, encompassing everything from interface design to managing stored data in the browser.
