@@ -379,7 +379,7 @@
                 });
         };
 
-        const addTmdbContr = (movieData) => {
+        const addTmdbContr = (movieData, id) => {
             let my_movies = JSON.parse(localStorage.my_movies);
             const movieExists = my_movies.some(movie => movie.title === movieData.title && movie.director === "N/A");
             if (movieExists) {
@@ -397,14 +397,7 @@
                 
                 my_movies.push(newMovie);
                 localStorage.my_movies = JSON.stringify(my_movies);
-                button.disabled = true;
-                 const successMessage = document.createElement("div");
-                successMessage.textContent = "Movie added successfully!";
-                successMessage.style.color = "green";
-                document.body.appendChild(successMessage);
-
-                // Remove message after 3 seconds
-                setTimeout(() => successMessage.remove(), 3000);
+                
                 document.getElementById('main').innerHTML = indexView(my_movies) + searchView;
             }
         };
@@ -425,7 +418,7 @@
             else if (matchEvent(ev, '.delete')) deleteContr (myId(ev));
             else if (matchEvent(ev, '.reset')) resetContr();
             else if (matchEvent(ev, '.search')) searchContr(document.getElementById('search-query').value);
-            else if (matchEvent(ev, '.add-tmdb')) addTmdbContr(tmdbMovies[myId(ev)]);
+            else if (matchEvent(ev, '.add-tmdb')) addTmdbContr(tmdbMovies[myId(ev)],myId(ev));
         })
 
         document.addEventListener("keydown", function (event) {
