@@ -46,7 +46,7 @@
         .movie-description {display: flex; align-items: center; justify-content: flex-start;}
         .movie-img-show {width: 300px; height: 300px; min-width: 300px; min-height: 300px; overflow: hidden; border-width: 10px; display: flex; align-items: flex-start; justify-content: flex-start;}
         .movie-img-show img {width: 500px; height: 300px; overflow: hidden; object-fit: contain; object-position: left;}
-        #new-overview, #edit-overview {width: 600px; height: 60px}
+        #new-overview, #edit-overview {width: 600px; height: 120px}
         #spinner {display: flex; justify-content: center; align-items: center; height: auto; margin: 0px 0;}
         .spinner {border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;}
 
@@ -303,7 +303,7 @@
             if (isDuplicate) {
                 alert("This movie already exists in your list.");
             } else {
-                // Otherwise, add the movie and update localStorage
+                
                 if (newMovie.title && newMovie.director && newMovie.thumbnail) {
                     my_movies.push(newMovie);
                     localStorage.my_movies = JSON.stringify(my_movies);
@@ -387,7 +387,7 @@
             } else {
                 const newMovie = {
                     title: movieData.title,
-                    director: "N/A",
+                    director: "",
                     thumbnail: `https://image.tmdb.org/t/p/w200${movieData.poster_path}`,
                     release_date: movieData.release_date, 
                     vote_average:movieData.vote_average,
